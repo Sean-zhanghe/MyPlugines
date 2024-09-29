@@ -1,0 +1,67 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using VRTK;
+
+/// <summary>
+/// 用户快速旋转以及旋转时眨眼
+/// </summary>
+public class QuickRotate_WSY : MonoBehaviour
+{
+    private VRTK_ControllerEvents _Event;
+
+    private VRTK_Pointer _Pointer;
+    // Start is called before the first frame update
+    void Start()
+    {
+        _Event = GetComponent<VRTK_ControllerEvents>();
+        _Event.TouchpadPressed += _Event_TouchpadPressed;
+
+        _Pointer = GetComponent<VRTK_Pointer>(); 
+    }
+
+    private void _Event_TouchpadPressed(object sender, ControllerInteractionEventArgs e)
+    {
+        if (e.touchpadAxis.x > 0.8f || e.touchpadAxis.x < -0.8f)
+        {
+            _Pointer.enabled = false;
+            //BlinkEye(Color.black);
+            if (e.touchpadAxis.x > 0.8f)
+            {
+                transform.parent.parent.Rotate(0, 30, 0);
+            }
+            else
+            {
+                transform.parent.parent.Rotate(0, -30, 0);
+            }
+            Invoke("EnableMove", 0.618f);
+        }
+    }
+    /// <summary>
+    /// 激活VRTK_Pointer脚本
+    /// </summary>
+    private void EnableMove()
+    {
+        _Pointer.enabled = true;
+    }
+    /// <summary>
+    /// 眨眼效果 
+    /// </summary>
+    /// <param name="c">眨眼时屏幕显示颜色</param>
+    /// <param name="doTime">眨眼过度时间</param>
+    /// <param name="continye">眨眼持续时间</param>
+    void BlinkEye(Color c,float doTime=0.3f,float continueTime=0.1f)
+    {
+        VRTK_SDK_Bridge.HeadsetFade(c, doTime);
+        //Invoke("ClearBlinkEye", continueTime);
+        StartCoroutine(ClearBlinkEye(continueTime));
+    }
+    /// <summary>
+    /// 眨眼颜色恢复
+    /// </summary>
+    IEnumerator  ClearBlinkEye(float continueTime)
+    {
+        yield return new WaitForSeconds(continueTime);
+        VRTK_SDK_Bridge.HeadsetFade(Color.clear, 0.3f);
+    }
+}
